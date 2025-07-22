@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do App</title>
+</head>
+<body>
+  <h1>My To-Do List</h1>
+  <input type="text" id="taskDesc" placeholder="Task description">
+  <button onclick="addTask()">Add Task</button>
+  <ul id="taskList"></ul>
+
+  <script>
+    const API = 'http://localhost:3000/api/tasks';
+
+    async function addTask() {
+      const desc = document.getElementById('taskDesc').value;
+      const res = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: desc })
+      });
+      const newTask = await res.json();
+      loadTasks();
+    }
+
+    async function loadTasks() {
+      const res = await fetch(API);
+      const tasks = await res.json();
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      tasks.forEach(t => {
+        const item = document.createElement('li');
+        item.textContent = t.description;
+        list.appendChild(item);
+      });
+    }
+
+    loadTasks();
+  </script>
+</body>
+</html>

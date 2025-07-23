@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>To-Do App</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    li.completed { text-decoration: line-through; color: gray; }
+    button.delete { margin-left: 10px; color: red; }
+  </style>
 </head>
 <body>
   <h1>My To-Do List</h1>
@@ -13,27 +18,57 @@
   <script>
     const API = 'https://to-do-list-qi08.onrender.com/api/tasks';
 
-    async function addTask() {
-      const desc = document.getElementById('taskDesc').value;
-      const res = await fetch(API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: desc })
-      });
-      const newTask = await res.json();
-      loadTasks();
-    }
-
     async function loadTasks() {
       const res = await fetch(API);
       const tasks = await res.json();
       const list = document.getElementById('taskList');
       list.innerHTML = '';
-      tasks.forEach(t => {
+
+      tasks.forEach(task => {
         const item = document.createElement('li');
-        item.textContent = t.description;
+        item.textContent = task.description;
+        item.className = task.completed ? 'completed' : '';
+        item.onclick = () => toggleComplete(task._id, !task.completed);
+
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Delete';
+        delBtn.className = 'delete';
+        delBtn.onclick = (e) => {
+          e.stopPropagation(); // prevent toggle on delete
+          deleteTask(task._id);
+        };
+
+        item.appendChild(delBtn);
         list.appendChild(item);
       });
+    }
+
+    async function addTask() {
+      const desc = document.getElementById('taskDesc').value;
+      if (!desc.trim()) return alert("Task cannot be empty");
+
+      await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: desc })
+      });
+
+      document.getElementById('taskDesc').value = '';
+      loadTasks();
+    }
+
+    async function toggleComplete(id, completed) {
+      await fetch(`${API}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed })
+      });
+      loadTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch(`${API}/${id}`, { method: 'DELETE' });
+      loadTasks();
     }
 
     loadTasks();

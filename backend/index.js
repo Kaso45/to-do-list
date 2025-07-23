@@ -6,7 +6,7 @@ const tasksRouter = require('./routes/tasks');
 
 app.use(express.static('public'));
 app.use(cors({
-    origin: "https://to-do-list-phi-sandy-19.vercel.app/",
+    origin: "https://to-do-list-phi-sandy-19.vercel.app",
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));

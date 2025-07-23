@@ -7,12 +7,20 @@
     body { font-family: sans-serif; padding: 20px; }
     li.completed { text-decoration: line-through; color: gray; }
     button.delete { margin-left: 10px; color: red; }
+    .task-id { font-size: 0.8em; color: gray; margin-left: 10px; }
+    .task-actions button { margin-right: 5px; }
   </style>
 </head>
 <body>
   <h1>My To-Do List</h1>
   <input type="text" id="taskDesc" placeholder="Task description">
   <button onclick="addTask()">Add Task</button>
+
+  <h2>Search Task by ID</h2>
+  <input type="text" id="taskId" placeholder="Enter Task ID">
+  <button onclick="fetchSingleTask()">Get Task</button>
+  <div id="singleTaskView"></div>
+
   <ul id="taskList"></ul>
 
   <script>
@@ -28,17 +36,33 @@
         const item = document.createElement('li');
         item.textContent = task.description;
         item.className = task.completed ? 'completed' : '';
-        item.onclick = () => toggleComplete(task._id, !task.completed);
+
+        const idTag = document.createElement('span');
+        idTag.className = 'task-id';
+        idTag.textContent = `(${task._id})`;
+
+        const actions = document.createElement('div');
+        actions.className = 'task-actions';
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.textContent = task.completed ? 'Mark Incomplete' : 'Mark Complete';
+        toggleBtn.onclick = () => toggleComplete(task._id, !task.completed);
 
         const delBtn = document.createElement('button');
         delBtn.textContent = 'Delete';
         delBtn.className = 'delete';
-        delBtn.onclick = (e) => {
-          e.stopPropagation(); // prevent toggle on delete
-          deleteTask(task._id);
-        };
+        delBtn.onclick = () => deleteTask(task._id);
 
-        item.appendChild(delBtn);
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = () => editTaskPrompt(task._id, task.description, task.completed);
+
+        actions.appendChild(toggleBtn);
+        actions.appendChild(editBtn);
+        actions.appendChild(delBtn);
+
+        item.appendChild(idTag);
+        item.appendChild(actions);
         list.appendChild(item);
       });
     }
@@ -71,7 +95,41 @@
       loadTasks();
     }
 
+    async function editTaskPrompt(id, currentDesc, completed) {
+      const newDesc = prompt("Edit task description:", currentDesc);
+      if (newDesc === null || !newDesc.trim()) return;
+
+      await fetch(`${API}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: newDesc, completed })
+      });
+      loadTasks();
+    }
+
+    async function fetchSingleTask() {
+      const taskId = document.getElementById('taskId').value.trim();
+      if (!taskId) return alert("Enter a Task ID");
+
+      const res = await fetch(`${API}/${taskId}`);
+      const data = await res.json();
+
+      const container = document.getElementById('singleTaskView');
+      container.innerHTML = '';
+
+      if (data.error) {
+        container.textContent = data.error;
+      } else {
+        container.innerHTML = `
+          <p><strong>Description:</strong> ${data.description}</p>
+          <p><strong>Completed:</strong> ${data.completed}</p>
+          <p><strong>ID:</strong> ${data._id}</p>
+        `;
+      }
+    }
+
     loadTasks();
   </script>
 </body>
 </html>
+

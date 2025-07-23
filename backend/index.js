@@ -5,7 +5,11 @@ const db = require('./db');
 const tasksRouter = require('./routes/tasks');
 
 app.use(express.static('public'));
-app.use(cors());
+app.use(cors({
+    origin: "https://to-do-list-phi-sandy-19.vercel.app/",
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
 app.use(express.json());
 app.use('/api/tasks', tasksRouter);
 

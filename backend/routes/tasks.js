@@ -15,13 +15,6 @@ router.get('/', async (req, res) => {
   res.json(tasks);
 });
 
-// get single task
-router.get('/:id', async (req, res) => {
-  const task = await Task.findOne(req.params.id)
-  if (task) res.json(task);
-  else res.status(404).json({ error: "Task not found" });
-})
-
 // update task by ID
 router.put('/:id', async (req, res) => {
   const updated = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
